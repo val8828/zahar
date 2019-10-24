@@ -7,12 +7,14 @@ import (
 	"github.com/PuerkitoBio/goquery"
 //	"os"
 	"sync"
-    "flag"    
-  //  "net/http"    
+    "flag"   
+    "strings"
+  
 )
 
 var (
 	searchCombination string // 
+	m map[string]string
 )
 
 
@@ -24,33 +26,37 @@ func _check(err error) {
 
 // основная функция обработки
 func parseUrl(url string) {
-	fmt.Println("request: " + url)
+
+	//fmt.Println("request: " + url)
 
 	// заворачиваем источник в goquery документ
 	doc, err := goquery.NewDocument(url)
-	// получаем объект со всеми тегами "a"
-	
+
 	_check(err)
 
 	// в манере jquery, css селектором получаем все ссылки
-	doc.Find(".EchoTopic").Each(func(i int, s *goquery.Selection) {
-		if val, ok := s.Attr("href"); ok {
-                fmt.Println(val)
+	doc.Find("a").Each(func(i int, s *goquery.Selection) {
+	if val, ok := s.Attr("href"); ok {
+			if strings.HasSuffix(val, "mp3") {
+				if _,ok :=  m[val]; !ok {
+					m[val] = s.Text()					
+				}
+				
+			}
         }
-	})
+	})		
 	
 }
 
 func main() {
+	m = make(map[string]string)
 	initCommandLineProp()
 	flag.Parse()	
 	
 	var wg sync.WaitGroup
 
-	url := "https://downloads.khinsider.com/search?search=zelda"
+	url := "https://downloads.khinsider.com/game-soundtracks/album/adk-world"
 
-	// получаем список url из входных параметров
-	//for _, url := range os.Args[1:] {
 		// каждый выполним параллельно
 		wg.Add(1)
 
@@ -60,13 +66,14 @@ func main() {
 			defer wg.Done()
 			parseUrl(url)
 		}(url)
-	//}
-
+	
 	// ждем завершения процессов
 	wg.Wait()
+	for key, value := range m {
+    	fmt.Println("Key:", key, "Value:", value)
+	}
 }
 
 func initCommandLineProp(){
-	flag.StringVar(&searchCombination,"sc", "zelda", "name of the game to search")
-	//flag.Parse()			
+	flag.StringVar(&searchCombination,"sc", "zelda", "name of the game to search")	
 }
