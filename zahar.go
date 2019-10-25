@@ -97,7 +97,7 @@ func findSongName(doc *goquery.Document) string {
 }
 
 func downloadFilesCNTRL() {	
-	os.MkdirAll("downloads/"+albumName,0777)
+	os.MkdirAll(albumName,0777)
 	for k, v := range pagesWithFiles {
 		
 		if runtime.NumGoroutine() >= WORKERS {
@@ -113,7 +113,12 @@ func downloadFilesCNTRL() {
 
 	}
 		time.Sleep(20 *time.Second)		
-    	fmt.Println("Done!")
+    	fmt.Println("The End")
+	//(countOfWorkers <= WORKERS) && (alreadyDoneFiles < len(pagesWithFiles)){
+//		currentLink := 
+	
+//	}
+	
 }
 
 func DownloadFile(filepath string, url string) error {
