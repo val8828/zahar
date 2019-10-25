@@ -42,8 +42,6 @@ func _check(doc *goquery.Document, err error) int {
 	return 0
 }
 
-//fmt.Println("request: " + url)
-
 // основная функция обработки
 func parseUrl(url string, level int )  {	
 	// заворачиваем источник в goquery документ
@@ -97,7 +95,7 @@ func findSongName(doc *goquery.Document) string {
 }
 
 func downloadFilesCNTRL() {	
-	os.MkdirAll(albumName,0777)
+	os.MkdirAll("downloads/"+albumName,0777)
 	for k, v := range pagesWithFiles {
 		
 		if runtime.NumGoroutine() >= WORKERS {
@@ -114,11 +112,6 @@ func downloadFilesCNTRL() {
 	}
 		time.Sleep(20 *time.Second)		
     	fmt.Println("The End")
-	//(countOfWorkers <= WORKERS) && (alreadyDoneFiles < len(pagesWithFiles)){
-//		currentLink := 
-	
-//	}
-	
 }
 
 func DownloadFile(filepath string, url string) error {
