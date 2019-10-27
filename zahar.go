@@ -20,19 +20,20 @@ import (
   	"io"
   	"net/http"
 	"runtime"
-
+	"strconv"
 )
 
-var (
-	searchCombination string // 
+var (	
 	pagesWithFiles map[string] string
 	albumName string
 	WORKERS int = 20 //кол-во "потоков"
 	url string
+	//firstPagedoc goquery.Document
+	linksToPagesWithFiles map[string] string
 )
 
-
-func _check(doc *goquery.Document, err error) int {
+//Check if page exists and not 404
+func checkPageError(doc *goquery.Document, err error) int {
 	if err != nil {
 		panic(err)
 	}
@@ -42,6 +43,33 @@ func _check(doc *goquery.Document, err error) int {
 	return 0
 }
 
+func searchMP3Links(url string) map[string] string{
+	// заворачиваем источник в goquery документ
+	firstPagedoc, err := goquery.NewDocument(url)
+
+	if checkPageError(firstPagedoc, err)	== 0 {
+		linksToPagesWithFiles = make(map[string]string)
+		var pp int = 1
+		firstPagedoc.Find("a").Each(func(i int, s *goquery.Selection) {
+			if val, ok := s.Attr("href"); ok {
+				//Check if url ends with mp3
+				if strings.HasSuffix(val, "mp3") {		
+					val := "https://downloads.khinsider.com" + val						
+					
+					if _,ok :=  linksToPagesWithFiles[val]; !ok {						
+						linksToPagesWithFiles[val] = strconv.Itoa(pp)
+						pp++				
+					}
+				}
+    		}
+		})	
+		return	linksToPagesWithFiles	
+	} else {
+		return nil
+	}
+
+}
+
 // основная функция обработки
 func parseUrl(url string, level int )  {	
 	// заворачиваем источник в goquery документ
@@ -49,7 +77,7 @@ func parseUrl(url string, level int )  {
 
 	switch level{
 	case 1:
-		if _check(doc, err)	== 0 {
+		if checkPageError(doc, err)	== 0 {
 			//get album name from first <h2> tag
 			if(albumName == ""){
 				doc.Find("h2").EachWithBreak(func(i int, s *goquery.Selection) bool {		
@@ -136,9 +164,9 @@ func DownloadFile(filepath string, url string) error {
 }
 
 func initial() {
-	flag.StringVar(&url,"url", "https://downloads.khinsider.com/game-soundtracks/album/death-brade", "страница с музакальным альбомом")	
-	flag.IntVar(&WORKERS, "w", 20, "количество потоков")
-	flag.StringVar(&albumName,"an", "", "путь папки")	
+	flag.StringVar(&url,"u", "https://downloads.khinsider.com/game-soundtracks/album/death-brade", "страница с музакальным альбомом")	
+	flag.IntVar(&WORKERS, "t", 20, "количество потоков")
+	flag.StringVar(&albumName,"f", "", "путь папки")	
 
 	pagesWithFiles = make(map[string]string)
 }
@@ -147,9 +175,17 @@ func main() {
 	
 	initial()
 
-	flag.Parse()			
+	flag.Parse()		
 
-	parseUrl(url,1)		
+	linksToPagesWithFiles = searchMP3Links(url)
+
+for k, v := range linksToPagesWithFiles {
+	fmt.Println(k,v)
+}
+
+
+
+	//parseUrl(url,1)		
 	
 	downloadFilesCNTRL()
 }
