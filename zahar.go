@@ -20,7 +20,7 @@ import (
   	"io"
   	"net/http"
 	"runtime"
-
+	"path/filepath"
 )
 
 var (
@@ -103,7 +103,7 @@ func downloadFilesCNTRL() {
 		}
 		
 		go func(i string, j string) { 			
-			if err := DownloadFile("downloads\\"+albumName + "\\" + j + ".mp3", i); err != nil {
+			if err := DownloadFile(filepath.FromSlash("downloads"+"/"+albumName + "/" + j + ".mp3"), i); err != nil {
         		panic(err)
         		fmt.Println(err)
     		}
