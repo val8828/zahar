@@ -21,6 +21,7 @@ import (
   	"net/http"
 	"runtime"
 	"path/filepath"
+	"sync"
 )
 
 var (
@@ -96,27 +97,34 @@ func findSongName(doc *goquery.Document) string {
 
 func downloadFilesCNTRL() {
 	os.MkdirAll("downloads/"+albumName,0777)
+	var wg sync.WaitGroup
+
 	for k, v := range pagesWithFiles {
 
 		if runtime.NumGoroutine() >= WORKERS {
 			time.Sleep(1 * time.Millisecond)
 		}
-
+		wg.Add(1)
 		go func(i string, j string) {
 			if err := DownloadFile(filepath.FromSlash("downloads"+"/"+albumName + "/" + j + ".mp3"), i); err != nil {
-        		panic(err)
-        		fmt.Println(err)
-    		}
+        			panic(err)
+	        		fmt.Println(err)
+				wg.Done()
+			}
+			wg.Done()
 		}(k , v)
 
 	}
-		time.Sleep(20 *time.Second)
+	wg.Wait()
+//time.Sleep(30 *time.Second)
 }
 
 func DownloadFile(filepath string, url string) error {
 
     // Get the data
     resp, err := http.Get(url)
+	filesize := resp.ContentLength/1024
+	fmt.Println(filesize, string(url[len(url)-20:]))
     if err != nil {
         return err
     }
