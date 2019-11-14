@@ -95,7 +95,9 @@ func findSongName(doc *goquery.Document) string {
 }
 
 func downloadFilesCNTRL() {	
-	os.MkdirAll("downloads\\"+albumName,0777)
+	downloadsDir := "downloads"+"/"+albumName
+
+	os.MkdirAll(filepath.Join(downloadsDir),0777)
 	for k, v := range pagesWithFiles {
 		
 		if runtime.NumGoroutine() >= WORKERS {
@@ -103,18 +105,24 @@ func downloadFilesCNTRL() {
 		}
 		
 		go func(i string, j string) { 			
-			if err := DownloadFile(filepath.FromSlash("downloads"+"/"+albumName + "/" + j + ".mp3"), i); err != nil {
-        		panic(err)
+
+			if err := DownloadFile(filepath.Join(downloadsDir,(j + ".mp3")), i); err != nil {//   filepath.FromSlash("downloads"+"/"+albumName + "/" + j + ".mp3")
         		fmt.Println(err)
+        		//panic(err)    
+
     		}
 		}(k , v)
 
 	}
-		time.Sleep(20 *time.Second)		    	
+		for runtime.NumGoroutine()>1 {
+			time.Sleep(1 *time.Second)		    	
+		}
+		
 }
 
-func DownloadFile(filepath string, url string) error {
-
+func DownloadFile(filepath1 string, url string) error {
+	//fmt.Println(url)
+	//fmt.Println(filepath.Dir(filepath1))
     // Get the data
     resp, err := http.Get(url)
     if err != nil {
@@ -123,7 +131,7 @@ func DownloadFile(filepath string, url string) error {
     defer resp.Body.Close()
 
     // Create the file
-    out, err := os.Create(filepath)
+    out, err := os.Create(filepath1)
     if err != nil {
         return err
     }
@@ -135,7 +143,7 @@ func DownloadFile(filepath string, url string) error {
 }
 
 func initial() {
-	flag.StringVar(&url,"url", "https://downloads.khinsider.com/game-soundtracks/album/death-brade", "страница с музакальным альбомом")	
+	flag.StringVar(&url,"url", "https://downloads.khinsider.com/game-soundtracks/album/kunoichi-nightshade", "страница с музакальным альбомом")	
 	flag.IntVar(&WORKERS, "w", 20, "количество потоков")
 	flag.StringVar(&albumName,"an", "", "путь папки")	
 
