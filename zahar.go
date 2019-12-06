@@ -30,6 +30,8 @@ var (
 	albumName string
 	WORKERS int = 20 //кол-во "потоков"
 	url string
+	fileWithLink string
+	//
 )
 
 
@@ -123,8 +125,8 @@ func DownloadFile(filepath string, url string) error {
 
     // Get the data
     resp, err := http.Get(url)
-	filesize := resp.ContentLength/1024
-	fmt.Println(filesize, string(url[len(url)-20:]))
+	//filesize := resp.ContentLength/1024
+	//fmt.Println(filesize, string(url[len(url)-20:]))
     if err != nil {
         return err
     }
@@ -142,22 +144,29 @@ func DownloadFile(filepath string, url string) error {
     return err
 }
 
-func initial() {
-	flag.StringVar(&url,"url", "https://downloads.khinsider.com/game-soundtracks/album/death-brade", "страница с музакальным альбомом")
-	flag.IntVar(&WORKERS, "w", 20, "количество потоков")
-	flag.StringVar(&albumName,"an", "", "путь папки")
+func initial() {		
+		flag.StringVar(&url,"u", "", "страница с музакальным альбомом")
+		flag.IntVar(&WORKERS, "w", 20, "количество потоков")
+		flag.StringVar(&albumName,"a", "", "путь папки")
+		flag.StringVar(&fileWithLink,"f","","файл со списком ссылок")
 
-	pagesWithFiles = make(map[string]string)
+		pagesWithFiles = make(map[string]string)		
+
+		flag.Parse()
+
+		if url == "" {
+	        flag.PrintDefaults()
+	        os.Exit(1)
+	    }
 }
 
+
+
 func main() {
-
-	initial()
-
-	flag.Parse()
+	initial() 
 
 	parseUrl(url,1)
 
-	downloadFilesCNTRL()
+	downloadFilesCNTRL()			
 }
 
