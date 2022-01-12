@@ -86,12 +86,19 @@ func parseUrl(url string, level int) {
 
 func findSongName(doc *goquery.Document) string {
 	var songName string
-	doc.Find("audio").Each(func(i int, s *goquery.Selection) {
-		attr, _ := s.Attr("src")
-		var startOfName int
-		startOfName = strings.LastIndex(attr, "/")
-		songName = attr[(startOfName + 1) : len(attr)-4]
+	doc.Find("b").Each(func(i int, s *goquery.Selection) {
+		if i == 3 {
+			songName = s.Text()
+		}
 	})
+	if songName == "" || songName == " " {
+		doc.Find("audio").Each(func(i int, s *goquery.Selection) {
+			attr, _ := s.Attr("src")
+			var startOfName int
+			startOfName = strings.LastIndex(attr, "/")
+			songName = attr[(startOfName + 1) : len(attr)-4]
+		})
+	}
 	return songName
 }
 
